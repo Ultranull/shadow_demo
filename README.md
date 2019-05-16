@@ -9,6 +9,5 @@ and [glad](https://github.com/Dav1dde/glad)
 ## controls
 |key press| action|
 |:-:|-|
-|w,a,s,d| fps movement controls for forward, backward, right, and left motion|
-| space and shift| ascend and descend|
-|mouse|look control|
+|w,s| forward and backward motion|
+|mouse| orbital look control|
