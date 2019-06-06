@@ -4,26 +4,31 @@
 
 #include <glm/glm.hpp>
 
-struct Texture {
 
-	GLuint id;
-
+struct TextureTraits {
 	GLuint target;
 	GLuint FILTER;
 	GLuint WRAP;
 	GLuint internalformat, format;
+};
+
+TextureTraits RGBA_2D = {GL_TEXTURE_2D,GL_NEAREST,GL_CLAMP_TO_EDGE,GL_RGBA,GL_RGBA};
+TextureTraits RGB_2D = {GL_TEXTURE_2D,GL_NEAREST,GL_CLAMP_TO_EDGE,GL_RGB,GL_RGB};
+
+struct Texture {
+
+
+	GLuint id;
+	TextureTraits params;
+
 
 
 	int width, height;
-	Texture() {}
+	Texture():params(RGBA_2D) {}
 
-	Texture(GLuint target, GLuint internalformat, GLuint format,
-			GLuint FILTER= GL_NEAREST, GLuint WRAP= GL_CLAMP_TO_EDGE):
-	target(target),FILTER(FILTER),WRAP(WRAP),internalformat(internalformat),format(format){//omfg this is chaos
+	Texture(TextureTraits t):params(t){
 		glGenTextures(1, &id);
 	}
-	Texture(GLuint target):
-		Texture(target, GL_RGBA, GL_RGBA){}
 
 	void load();
 	void setSize(int w,int h);

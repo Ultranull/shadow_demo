@@ -4,11 +4,12 @@
 
 
 void Texture::load(){
-	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, FILTER);
-	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, FILTER);
-	glTexParameteri(target, GL_TEXTURE_WRAP_S, WRAP);
-	glTexParameteri(target, GL_TEXTURE_WRAP_T, WRAP);
-	glGenerateMipmap(target);
+	glTexParameteri(params.target, GL_TEXTURE_MAG_FILTER, params.FILTER);
+	glTexParameteri(params.target, GL_TEXTURE_MIN_FILTER, params.FILTER);
+	glTexParameteri(params.target, GL_TEXTURE_WRAP_S, params.WRAP);
+	glTexParameteri(params.target, GL_TEXTURE_WRAP_T, params.WRAP);
+	glTexParameteri(params.target, GL_TEXTURE_WRAP_R, params.WRAP);
+	glGenerateMipmap(params.target);
 
 }
 
@@ -18,12 +19,12 @@ void Texture::setSize(int w, int h){
 }
 
 void Texture::bind(){
-	glBindTexture(target, id);
+	glBindTexture(params.target, id);
 }
 
 GLint Texture::activate(GLenum texture) {
 	glActiveTexture(texture);
-	glBindTexture(GL_TEXTURE_2D, id);
+	glBindTexture(params.target, id);
 	return texture - GL_TEXTURE0;
 }
 
