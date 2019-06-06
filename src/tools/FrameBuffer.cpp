@@ -36,9 +36,12 @@ void FrameBuffer::addDepth(){
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void FrameBuffer::addTexture(std::string name, GLuint internalformat, GLenum format,GLenum attachment){
+void FrameBuffer::addTexture2D(std::string name, GLuint internalformat, GLenum format,GLenum attachment){
 	glBindFramebuffer(GL_FRAMEBUFFER, id);
-	Texture text (GL_TEXTURE_2D,internalformat,format);
+	TextureTraits params = RGBA_2D;
+	params.internalformat = internalformat;
+	params.format = format;
+	Texture text (params);
 	text.bind();
 	text.load();
 	glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, GL_FLOAT, 0);
@@ -50,6 +53,25 @@ void FrameBuffer::addTexture(std::string name, GLuint internalformat, GLenum for
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void FrameBuffer::addTexture3D(std::string name, GLuint internalformat, GLenum format, GLenum attachment) {
+	glBindFramebuffer(GL_FRAMEBUFFER, id);
+	TextureTraits params = DEPTH_3D;
+	params.internalformat = internalformat;
+	params.format = format;
+	Texture text(params);
+	text.bind();
+	text.load(); 
+	for (unsigned int i = 0; i < 6; ++i)
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat,
+			width, height, 0, format, GL_FLOAT, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, text.id, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, attachment, text.id, 0);
+	textures.insert(std::make_pair(name, text));
+	if (attachment != GL_DEPTH_ATTACHMENT)
+		buffers.push_back(attachment);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 

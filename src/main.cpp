@@ -103,7 +103,7 @@ class Game :public App {
 		cBuffer.unbind();
 
 		depth = FrameBuffer(700, 700);
-		depth.addTexture("depth", GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_DEPTH_ATTACHMENT);
+		depth.addTexture2D("depth", GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_DEPTH_ATTACHMENT);
 		depth.drawBuffers();
 		depth.check();
 	}

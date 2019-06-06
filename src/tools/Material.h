@@ -12,8 +12,9 @@ struct TextureTraits {
 	GLuint internalformat, format;
 };
 
-TextureTraits RGBA_2D = {GL_TEXTURE_2D,GL_NEAREST,GL_CLAMP_TO_EDGE,GL_RGBA,GL_RGBA};
-TextureTraits RGB_2D = {GL_TEXTURE_2D,GL_NEAREST,GL_CLAMP_TO_EDGE,GL_RGB,GL_RGB};
+static TextureTraits RGBA_2D = {GL_TEXTURE_2D,GL_NEAREST,GL_CLAMP_TO_EDGE,GL_RGBA,GL_RGBA};
+static TextureTraits RGB_2D = {GL_TEXTURE_2D,GL_NEAREST,GL_CLAMP_TO_EDGE,GL_RGB,GL_RGB};
+static TextureTraits DEPTH_3D = { GL_TEXTURE_CUBE_MAP,GL_NEAREST,GL_CLAMP_TO_EDGE,GL_DEPTH_COMPONENT,GL_DEPTH_COMPONENT };
 
 struct Texture {
 
@@ -24,7 +25,7 @@ struct Texture {
 
 
 	int width, height;
-	Texture():params(RGBA_2D) {}
+	Texture():Texture(RGBA_2D) {}
 
 	Texture(TextureTraits t):params(t){
 		glGenTextures(1, &id);

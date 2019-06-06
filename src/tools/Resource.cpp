@@ -168,7 +168,7 @@ GLuint loadshaders(const char *vertexfile, const char *fragmentfile, const char 
 		printf("loading texture: %s\n", filename);
 		//glEnable(GL_TEXTURE_2D);
 
-		Texture t(GL_TEXTURE_2D);
+		Texture t;
 		t.bind();
 		t.load();
 		int w, h, bpp;
@@ -181,10 +181,10 @@ GLuint loadshaders(const char *vertexfile, const char *fragmentfile, const char 
 		t.setSize(w, h);
 		if (bpp == 3) {
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-			glTexImage2D(t.target, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(t.params.target, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		}
 		else if (bpp == 4)
-			glTexImage2D(t.target, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(t.params.target, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		stbi_image_free(data);
 		Texture::unbind();
 		return t;
@@ -196,7 +196,7 @@ GLuint loadshaders(const char *vertexfile, const char *fragmentfile, const char 
 		unsigned char *data;
 		int width, height;
 
-		Texture t(GL_TEXTURE_2D);
+		Texture t;
 		t.bind();
 		t.load();
 

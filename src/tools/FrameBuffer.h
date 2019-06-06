@@ -23,7 +23,8 @@ namespace bhtk {
 		void read();
 		void draw();
 		void addDepth();
-		void addTexture(std::string name, GLuint internalformat, GLenum format, GLenum attachment);
+		void addTexture2D(std::string name, GLuint internalformat, GLenum format, GLenum attachment);
+		void addTexture3D(std::string name, GLuint internalformat, GLenum format, GLenum attachment);
 		void drawBuffers();
 		Texture getTexture(std::string name);
 		void check();
