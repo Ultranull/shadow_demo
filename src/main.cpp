@@ -59,11 +59,14 @@ Mesh loadOBJ(string fn) {
 
 class Game :public App {
 	Resource *R;
-	Mesh mesh,geom,box;
+	Mesh mesh,geom,box,lamp;
 
 	Camera cam;
 	Program simple,uvmaped,depthpass;
 	FrameBuffer depth;
+	FrameBuffer depthPoint;
+
+	vec3 lightpos = vec3(2, 2, 2);
 
 	UniformBuffer cBuffer;
 
@@ -83,12 +86,13 @@ class Game :public App {
 
 		simple = Program(R->addShader("vertex.vert"), R->addShader("fragment.frag"));
 		uvmaped = Program(R->addShader("uvmaped.vert"), R->addShader("uvmaped.frag"));
-		depthpass = Program(R->addShader("depth.vert"), R->addShader("depth.frag"));
+		depthpass = Program(R->addShader("depthPoint.vert"), R->addShader("depthPoint.frag"), R->addShader("depthPoint.geom"));
 		R->addTexture("uvmap", "uvmap.png");
 		R->addTexture("gridmap", "gridmap.png");
 		mesh = loadOBJ(R->path + "knot.obj");
 		geom = loadOBJ(R->path + "monkey.obj");
 		box= loadOBJ(R->path + "insideout_cube.obj");
+		lamp= loadOBJ(R->path + "sphere.obj");
 		
 		
 		cam.perspective(window, 45, .1, 100);
@@ -102,10 +106,10 @@ class Game :public App {
 		cBuffer.blockBinding(simple.getProgramID(), 0, "camera");
 		cBuffer.unbind();
 
-		depth = FrameBuffer(700, 700);
-		depth.addTexture2D("depth", GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_DEPTH_ATTACHMENT);
-		depth.drawBuffers();
-		depth.check();
+		depthPoint = FrameBuffer(900, 900);
+		depthPoint.addTexture3D("depth", GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_DEPTH_ATTACHMENT);
+		depthPoint.drawBuffers();
+		depthPoint.check();
 	}
 
 	void onClose() {
@@ -134,27 +138,39 @@ class Game :public App {
 
 		model = rotate(-ticks, vec3(-1, 1, 0))*translate(vec3(-5, -5, 0));
 		prog.setUniform("model", &model);
-		if(renderpass)
-			geom.renderVertices(GL_TRIANGLES);
+		geom.renderVertices(GL_TRIANGLES);
 
 		prog.setUniform("model", &mat4(1));
 		mesh.renderVertices(GL_TRIANGLES);
 
 		uvmaped.setUniform("uvmap", R->bindTexture("gridmap", GL_TEXTURE1));
 		prog.setUniform("model", &scale(vec3(10)));
-		box.renderVertices(GL_TRIANGLES);
+		if (renderpass)
+			box.renderVertices(GL_TRIANGLES);
 	}
 	void render(float delta) {
-		depth.bind();
+		depthPoint.bind();
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		depthpass.bind();
+		float near_plane = .10f;
+		float far_plane = 100.0f;
+		mat4 shadowP = perspective(radians(90.f), (float)depth.getWidth() / depth.getHeight(), near_plane, far_plane);
+		vector<mat4> shadowV = {
+			shadowP*lookAt(lightpos,lightpos + vec3( 1.f, 0.f, 0.f),vec3(0.f,-1.f, 0.f)),
+			shadowP*lookAt(lightpos,lightpos + vec3(-1.f, 0.f, 0.f),vec3(0.f,-1.f, 0.f)),
+			shadowP*lookAt(lightpos,lightpos + vec3(0.f, 1.f, 0.f),vec3(0.f, 0.f, 1.f)),
+			shadowP*lookAt(lightpos,lightpos + vec3(0.f,-1.f, 0.f),vec3(0.f, 0.f,-1.f)),
+			shadowP*lookAt(lightpos,lightpos + vec3(0.f, 0.f, 1.f),vec3(0.f,-1.f, 0.f)),
+			shadowP*lookAt(lightpos,lightpos + vec3(0.f, 0.f,-1.f),vec3(0.f,-1.f, 0.f)),
+		};
 
-		mat4 depthP =perspective(radians(90.f), (float)depth.getWidth() / depth.getHeight(), 1.f, 1000.f);
-		mat4 depthV = lookAt(vec3(8), vec3(0, 0, 0), vec3(0, 1, 0));
 
-		depthpass.setUniform("projection", &depthP);
-		depthpass.setUniform("view", &depthV);
+		for (int i = 0; i < 6; i++)
+			depthpass.setUniform("shadowmats[" + to_string(i) + "]", &shadowV[i]);
+
+		depthpass.setUniform("far_plane", far_plane);
+		depthpass.setUniform("lightPos", &lightpos);
 
 		scene(depthpass,0);
 
@@ -164,16 +180,23 @@ class Game :public App {
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 		uvmaped.bind();
-		Texture d = depth.getTexture("depth");
+		uvmaped.setUniform("lightPos", &lightpos);
+		uvmaped.setUniform("viewPos", &cam.getPosition());
+		uvmaped.setUniform("far_plane", far_plane);
+		Texture d = depthPoint.getTexture("depth");
 		uvmaped.setUniform("depthmap", d.activate(GL_TEXTURE0));
-		glm::mat4 biasMatrix = (depthP*depthV);
-		uvmaped.setUniform("bias", &biasMatrix);
 
 		scene(uvmaped);
+
+		simple.bind();
+		simple.setUniform("model", &(translate(lightpos)*scale(vec3(.25))));
+		lamp.renderVertices(GL_TRIANGLES);
 	}
 
 	void inputListener(float delta) {
 		running = glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS;
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+			lightpos = cam.getPosition();
 	}
 public:
 

@@ -156,6 +156,8 @@ GLuint loadshaders(const char *vertexfile, const char *fragmentfile, const char 
 			type = GL_VERTEX_SHADER;
 		else if(ext.compare("frag") == 0)
 			type = GL_FRAGMENT_SHADER;
+		else if (ext.compare("geom") == 0)
+			type = GL_GEOMETRY_SHADER;
 		Shader sh(path + shaderPath + file, type);
 		shaders.insert({ file,sh });
 		return sh;

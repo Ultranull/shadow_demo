@@ -3,30 +3,54 @@ out vec4 fragColor;
 
 in vec3 normal;
 in vec2 uv;
-in vec4 shadowCoord;  
 in vec3 FragPos;  
 
 uniform sampler2D uvmap;
-uniform sampler2D depthmap;
+uniform samplerCube depthmap;
 
+
+uniform vec3 lightPos;
+uniform vec3 viewPos;
+uniform float far_plane;
+
+// array of offset direction for sampling
+vec3 gridSamplingDisk[20] = vec3[]
+(
+   vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
+   vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+   vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
+   vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
+   vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+);
+
+float ShadowCalculation(vec3 fragPos)
+{
+    // get vector between fragment position and light position
+    vec3 fragToLight = fragPos - lightPos;
+    float currentDepth = length(fragToLight);
+    float shadow = 0.0;
+    float bias = 0.15;
+    int samples = 5;
+    float viewDistance = length(viewPos - fragPos);
+    float diskRadius = (1.0 + (viewDistance / far_plane)) / 25.0;
+    for(int i = 0; i < samples; ++i)
+    {
+        float closestDepth = texture(depthmap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
+        closestDepth *= far_plane;   // undo mapping [0;1]
+        if(currentDepth - bias > closestDepth)
+            shadow += 1.0;
+    }
+    shadow /= float(samples);
+        
+    // display closestDepth as debug (to visualize depth cubemap)
+    // FragColor = vec4(vec3(closestDepth / far_plane), 1.0);    
+        
+    return shadow;
+}
 void main(){
 
-	vec2 poissonDisk[4] = vec2[](
-	  vec2( -0.94201624, -0.39906216 ),
-	  vec2( 0.94558609, -0.76890725 ),
-	  vec2( -0.094184101, -0.92938870 ),
-	  vec2( 0.34495938, 0.29387760 )
-	);
+	float visibility = 1.0-ShadowCalculation(FragPos);
 
-	vec3 projcoords = shadowCoord.xyz/shadowCoord.w;
-    projcoords = projcoords * 0.5 + 0.5;
-	float visibility = 1.0;
-	for (int i=0;i<4;i++){
-		if ( texture( depthmap, projcoords.xy + poissonDisk[i]/700.0 ).r  <  projcoords.z-0.005 ){
-			visibility-=0.2;
-		}
-	}
-
-	float intensity=clamp(dot(normal,vec3(1,1,1)),0,1);
-	fragColor=visibility*texture(uvmap,uv)*(.7*intensity+.3);
+	float intensity=clamp(dot(normal,lightPos),0,1);
+	fragColor=texture(uvmap,uv)*(.5*intensity+.2+visibility*.4);
 }
