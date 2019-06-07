@@ -30,7 +30,7 @@ float ShadowCalculation(vec3 fragPos)
     float currentDepth = length(fragToLight);
     float shadow = 0.0;
     float bias = 0.15;
-    int samples = 5;
+    int samples = 20;
     float viewDistance = length(viewPos - fragPos);
     float diskRadius = (1.0 + (viewDistance / far_plane)) / 25.0;
     for(int i = 0; i < samples; ++i)
@@ -49,8 +49,8 @@ float ShadowCalculation(vec3 fragPos)
 }
 void main(){
 
+float dist=length(lightPos-FragPos);
 	float visibility = 1.0-ShadowCalculation(FragPos);
-
 	float intensity=clamp(dot(normal,lightPos),0,1);
-	fragColor=texture(uvmap,uv)*(.5*intensity+.2+visibility*.4);
+	fragColor=texture(uvmap,uv)*(.5*intensity+.2+visibility*.4)*5/dist;
 }

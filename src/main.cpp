@@ -118,7 +118,8 @@ class Game :public App {
 
 	void update(float delta) {
 		cam.perspective(window, 45, .1, 100);
-		cam.orbit(window, delta, {0,0,0});
+		//cam.orbit(window, delta, {0,0,0});
+		cam.apply(window, delta);
 
 		cBuffer.bind();
 		cBuffer.setSubData(0, sizeof(glm::mat4), glm::value_ptr(cam.P()));
@@ -144,7 +145,7 @@ class Game :public App {
 		mesh.renderVertices(GL_TRIANGLES);
 
 		uvmaped.setUniform("uvmap", R->bindTexture("gridmap", GL_TEXTURE1));
-		prog.setUniform("model", &scale(vec3(10)));
+		prog.setUniform("model", &scale(vec3(15)));
 		if (renderpass)
 			box.renderVertices(GL_TRIANGLES);
 	}
@@ -195,7 +196,7 @@ class Game :public App {
 
 	void inputListener(float delta) {
 		running = glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS;
-		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 			lightpos = cam.getPosition();
 	}
 public:
