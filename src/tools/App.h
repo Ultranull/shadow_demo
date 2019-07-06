@@ -8,7 +8,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-namespace bhtk {
 	class App {
 
 
@@ -55,7 +54,6 @@ namespace bhtk {
 		void start();
 
 	};
-}
 /*
 
 * App:

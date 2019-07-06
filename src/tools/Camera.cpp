@@ -7,7 +7,6 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 using namespace glm;
-using namespace bhtk;
 
 const GLuint FORWARD = GLFW_KEY_W;//FIX! move to input class
 const GLuint BACKWARD = GLFW_KEY_S;

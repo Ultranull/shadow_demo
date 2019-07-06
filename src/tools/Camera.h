@@ -2,7 +2,6 @@
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-namespace bhtk {
 	class Camera {
 		glm::vec3 position;
 		glm::vec3 direction;
@@ -31,5 +30,3 @@ namespace bhtk {
 		glm::vec3 getDirection();
 		glm::vec3 getPosition();
 	};
-
-}

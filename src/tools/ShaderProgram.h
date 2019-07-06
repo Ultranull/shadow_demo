@@ -6,7 +6,6 @@
 #include<glad/glad.h>
 #include "glm/glm.hpp"
 
-namespace bhtk {
 
 	struct Shader {
 		GLuint id;
@@ -38,5 +37,3 @@ namespace bhtk {
 
 		GLuint getProgramID();
 	};
-
-}

@@ -7,7 +7,6 @@
 
 #include "Material.h"
 
-namespace bhtk {
 	class FrameBuffer {
 		GLuint id;
 		GLuint width, height;
@@ -35,4 +34,3 @@ namespace bhtk {
 		void cleanup();
 		static void bindDefualt();
 	};
-}

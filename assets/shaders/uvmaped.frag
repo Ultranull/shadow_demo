@@ -49,8 +49,8 @@ float ShadowCalculation(vec3 fragPos)
 }
 void main(){
 
-float dist=length(lightPos-FragPos);
-	float visibility = 1.0-ShadowCalculation(FragPos);
-	float intensity=clamp(dot(normal,lightPos),0,1);
-	fragColor=texture(uvmap,uv)*(.5*intensity+.2+visibility*.4)*5/dist;
+	float dist=length(FragPos-lightPos);
+	float visibility = clamp(1.0-ShadowCalculation(FragPos),0,1);
+	float intensity=clamp(dot(normal,lightPos),0.,1.);
+	fragColor=texture(uvmap,uv)*(.5*intensity+.1+visibility*.4)*5./dist;
 }

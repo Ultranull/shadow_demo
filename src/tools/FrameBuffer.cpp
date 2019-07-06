@@ -1,6 +1,5 @@
 #include "FrameBuffer.h"
 
-using namespace bhtk;
 
 FrameBuffer::FrameBuffer():FrameBuffer(500,500){
 }

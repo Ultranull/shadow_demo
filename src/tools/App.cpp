@@ -2,7 +2,6 @@
 
 
 
-namespace bhtk {
 	App::App() {
 	}
 
@@ -88,4 +87,3 @@ namespace bhtk {
 		init();
 		mainLoop();
 	}
-}

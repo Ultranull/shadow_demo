@@ -9,7 +9,6 @@
 #include"ShaderProgram.h"
 #include"Material.h"
 
-namespace bhtk {
 
 	class Resource {
 		std::map<std::string, Texture> textures;
@@ -44,5 +43,3 @@ namespace bhtk {
 		void operator=(Resource const&) = delete;
 
 	};
-
-}

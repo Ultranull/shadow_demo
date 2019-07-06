@@ -1,13 +1,23 @@
 #include <fstream>
 #include <sstream>
 
-#include "tools/BluehatToolkit.h"
+#include <string>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include "tools/App.h"
+#include "tools/Camera.h"
+#include "tools/Mesh.h"
+#include "tools/Resource.h"
+#include "tools/ShaderProgram.h"
+#include "tools/FrameBuffer.h"
 
 
 using namespace glm;
 using namespace std;
-using namespace bhtk;
 
 
 
@@ -131,7 +141,7 @@ class Game :public App {
 
 	}
 	void scene(Program prog,bool renderpass=true){
-		uvmaped.setUniform("uvmap", R->bindTexture("uvmap", GL_TEXTURE1));
+		prog.setUniform("uvmap", R->bindTexture("uvmap", GL_TEXTURE1));
 
 		mat4 model = rotate(-ticks, vec3(-1, 1, 0))*translate(vec3(5, 5, 0));
 		prog.setUniform("model", &model);
@@ -144,7 +154,7 @@ class Game :public App {
 		prog.setUniform("model", &mat4(1));
 		mesh.renderVertices(GL_TRIANGLES);
 
-		uvmaped.setUniform("uvmap", R->bindTexture("gridmap", GL_TEXTURE1));
+		prog.setUniform("uvmap", R->bindTexture("gridmap", GL_TEXTURE1));
 		prog.setUniform("model", &scale(vec3(15)));
 		if (renderpass)
 			box.renderVertices(GL_TRIANGLES);

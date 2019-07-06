@@ -5,7 +5,6 @@
 #include <string>
 
 using namespace std;
-using namespace bhtk;
 
 string read(const char *file) {//FIX! place in a header as a util
 	string content;
