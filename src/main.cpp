@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include "tools/App.h"
 #include "tools/Camera.h"
@@ -67,16 +68,50 @@ Mesh loadOBJ(string fn) {
 	return Mesh(verts);
 }
 
+void dumpMesh(Mesh& mesh, string fn) {
+	ofstream out(fn.c_str(), ios::binary);
+	size_t size = mesh.vertices.size();
+	out.write((char*)& size, sizeof(size));
+	for (int i = 0; i < mesh.vertices.size(); i++) {
+		Vertex v = mesh.vertices[i];
+		out.write((char*)& v, sizeof(v));
+	}
+	out.close();
+}
+
+Mesh loadMesh(string fn) {
+	vector<Vertex> verts;
+	ifstream in(fn.c_str(), ios::binary);
+	if (!in) {
+		string obj = fn;
+		int dot = obj.find('.');
+		obj.replace(obj.begin() + dot + 1, obj.end(), "obj");
+		Mesh m = loadOBJ(obj);
+		dumpMesh(m, fn);
+		return m;
+	}
+	size_t size;
+	in.read((char*)& size, sizeof(size));
+	for (int i = 0; i < size; i++) {
+		Vertex v;
+		in.read((char*)& v, sizeof(v));
+		verts.push_back(v);
+	}
+	in.close();
+	return Mesh(verts);
+}
+
 class Game :public App {
 	Resource *R;
-	Mesh mesh,geom,box,lamp;
+	Mesh mesh,geom,box,lamp,plane;
 
 	Camera cam;
-	Program simple,uvmaped,depthpass;
+	Program basic,uvmaped,depthpass,simple;
 	FrameBuffer depth;
 	FrameBuffer depthPoint;
 
 	vec3 lightpos = vec3(2, 2, 2);
+	vec3 meshpos = vec3(5);
 
 	UniformBuffer cBuffer;
 
@@ -94,16 +129,17 @@ class Game :public App {
 	void init() {
 		R = &Resource::getInstance();
 
-		simple = Program(R->addShader("vertex.vert"), R->addShader("fragment.frag"));
+		basic = Program(R->addShader("vertex.vert"), R->addShader("fragment.frag"));
+		simple = Program(R->addShader("simple.vert"), R->addShader("simple.frag"));
 		uvmaped = Program(R->addShader("uvmaped.vert"), R->addShader("uvmaped.frag"));
 		depthpass = Program(R->addShader("depthPoint.vert"), R->addShader("depthPoint.frag"), R->addShader("depthPoint.geom"));
 		R->addTexture("uvmap", "uvmap.png");
 		R->addTexture("gridmap", "gridmap.png");
-		mesh = loadOBJ(R->path + "knot.obj");
-		geom = loadOBJ(R->path + "monkey.obj");
-		box= loadOBJ(R->path + "insideout_cube.obj");
-		lamp= loadOBJ(R->path + "sphere.obj");
-		
+		mesh = loadMesh(R->path + "knot.mesh");
+		geom = loadMesh(R->path + "monkey.mesh");
+		box= loadMesh(R->path + "insideout_cube.mesh");
+		lamp= loadMesh(R->path + "sphere.mesh");
+		plane = loadMesh(R->path + "plane.mesh");
 		
 		cam.perspective(window, 45, .1, 100);
 
@@ -113,7 +149,7 @@ class Game :public App {
 		cBuffer.setData<mat4>(2, GL_DYNAMIC_DRAW);
 		cBuffer.setSubData(0, sizeof(glm::mat4), glm::value_ptr(cam.P()));
 		cBuffer.setSubData(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(cam.V()));
-		cBuffer.blockBinding(simple.getProgramID(), 0, "camera");
+		cBuffer.blockBinding(basic.getProgramID(), 0, "camera");
 		cBuffer.unbind();
 
 		depthPoint = FrameBuffer(900, 900);
@@ -143,21 +179,27 @@ class Game :public App {
 	void scene(Program prog,bool renderpass=true){
 		prog.setUniform("uvmap", R->bindTexture("uvmap", GL_TEXTURE1));
 
-		mat4 model = rotate(-ticks, vec3(-1, 1, 0))*translate(vec3(5, 5, 0));
+		mat4 rot = rotate(ticks*2.f, vec3(1));
+		mat4 model = translate(vec3(cos(ticks),sin(ticks), (cos(ticks) + sin(ticks))/2.)*7.f)* rot;
 		prog.setUniform("model", &model);
 		geom.renderVertices(GL_TRIANGLES);
 
-		model = rotate(-ticks, vec3(-1, 1, 0))*translate(vec3(-5, -5, 0));
-		prog.setUniform("model", &model);
-		geom.renderVertices(GL_TRIANGLES);
+
+		if (!renderpass) {
+			model = inverse(cam.V()) * rotate(radians(180.f), vec3(0., 1., 0.));
+			prog.setUniform("model", &model);
+			geom.renderVertices(GL_TRIANGLES);
+		}
 
 		prog.setUniform("model", &mat4(1));
 		mesh.renderVertices(GL_TRIANGLES);
 
 		prog.setUniform("uvmap", R->bindTexture("gridmap", GL_TEXTURE1));
 		prog.setUniform("model", &scale(vec3(15)));
-		if (renderpass)
+		if (renderpass) {
 			box.renderVertices(GL_TRIANGLES);
+
+		}
 	}
 	void render(float delta) {
 		depthPoint.bind();
@@ -199,15 +241,25 @@ class Game :public App {
 
 		scene(uvmaped);
 
-		simple.bind();
-		simple.setUniform("model", &(translate(lightpos)*scale(vec3(.25))));
+		basic.bind();
+		basic.setUniform("model", &(translate(lightpos)*scale(vec3(.25))));
 		lamp.renderVertices(GL_TRIANGLES);
+
+
+
+		simple.bind();
+		mat4 model = translate(meshpos) * translate(-cam.getPosition()) * inverse(cam.V())* rotate(radians(90.f), vec3(1, 0, 0));// rotate(radians(90.f), vec3(1, 0, 0))* translate(vec3(.5))* scale(vec3(.25));
+		simple.setUniform("model", &model);
+		simple.setUniform("uvmap", d.activate(GL_TEXTURE0));
+		plane.renderVertices(GL_TRIANGLES);
 	}
 
 	void inputListener(float delta) {
 		running = glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS;
 		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 			lightpos = cam.getPosition();
+		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+			meshpos = cam.getPosition();
 	}
 public:
 
