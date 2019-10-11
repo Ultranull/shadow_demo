@@ -12,6 +12,7 @@ uniform samplerCube depthmap;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform float far_plane;
+uniform float time;
 
 float ShadowCalculation(vec3 fragPos)
 {
@@ -38,13 +39,14 @@ float ShadowCalculation(vec3 fragPos)
 
 	float shadow = 0.0;
 	float counter=0;
-	for(float x = -1; x <= 1; x+=.5)
+	float size = 2., stp = .5;
+	for(float x = -size; x <= size; x+=stp)
 	{
-		for(float y = -1; y <= 1; y+=.5)
+		for(float y = -size; y <= size; y+=stp)
 		{
-			for(float z = -1; z <= 1; z+=.5)
+			for(float z = -size; z <= size; z+=stp)
 			{
-				float pcfDepth = texture(depthmap, fragToLight + vec3(x, y, z)/10. ).r * far_plane; 
+				float pcfDepth = texture(depthmap, fragToLight + vec3(x, y, z)/(10.) ).r * far_plane; 
 				shadow += currentDepth - bias > pcfDepth ? .0 : 1.0;    
 				counter+=1.;
 			}
@@ -66,8 +68,6 @@ void main(){
 	float attun= 1./dist;
 
     vec3 ambient = vec3(vec3(.5) * texture(uvmap,uv).rgb);
-
-	vec3 shadow = vec3(1,.2,.2)*visibility;
   	
     vec3 norm = normalize(normal);
     vec3 lightDir = normalize(lightPos - FragPos);
@@ -78,7 +78,7 @@ void main(){
 //    vec3 reflectDir = reflect(-lightDir, norm);
 	vec3 reflectDir = normalize(lightDir + viewDir);
     float spec = pow(clamp(dot(normal, reflectDir), 0.,1.), 5);
-    vec3 specular = vec3(.1)*spec;  
+    vec3 specular = vec3(.5)*spec;  
         
-    fragColor = vec4((ambient + specular + diffuse )*(attun+visibility),1);
+    fragColor = vec4((ambient + specular + diffuse)*(attun+visibility),1);
 }

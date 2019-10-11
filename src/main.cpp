@@ -238,6 +238,7 @@ class Game :public App {
 		uvmaped.setUniform("far_plane", far_plane);
 		Texture d = depthPoint.getTexture("depth");
 		uvmaped.setUniform("depthmap", d.activate(GL_TEXTURE0));
+		uvmaped.setUniform("time", ticks);
 
 		scene(uvmaped);
 
