@@ -180,7 +180,7 @@ class Game :public App {
 		prog.setUniform("uvmap", R->bindTexture("uvmap", GL_TEXTURE1));
 
 		mat4 rot = rotate(ticks*2.f, vec3(1));
-		mat4 model = translate(vec3(cos(ticks),sin(ticks), (cos(ticks) + sin(ticks))/2.)*7.f)* rot;
+		mat4 model = translate(vec3(cos(ticks),sin(ticks), (cos(ticks) + sin(ticks))/2.f)*7.f)* rot;
 		prog.setUniform("model", &model);
 		geom.renderVertices(GL_TRIANGLES);
 
@@ -249,10 +249,10 @@ class Game :public App {
 
 
 		simple.bind();
-		mat4 model = translate(meshpos) * translate(-cam.getPosition()) * inverse(cam.V())* rotate(radians(90.f), vec3(1, 0, 0));// rotate(radians(90.f), vec3(1, 0, 0))* translate(vec3(.5))* scale(vec3(.25));
+		mat4 model = translate(meshpos);// *translate(-cam.getPosition())* inverse(cam.V())* rotate(radians(90.f), vec3(1, 0, 0));// rotate(radians(90.f), vec3(1, 0, 0))* translate(vec3(.5))* scale(vec3(.25));
 		simple.setUniform("model", &model);
 		simple.setUniform("uvmap", d.activate(GL_TEXTURE0));
-		plane.renderVertices(GL_TRIANGLES);
+		lamp.renderVertices(GL_TRIANGLES);
 	}
 
 	void inputListener(float delta) {

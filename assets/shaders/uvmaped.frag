@@ -39,14 +39,15 @@ float ShadowCalculation(vec3 fragPos)
 
 	float shadow = 0.0;
 	float counter=0;
-	float size = 2., stp = .5;
+	float size = 2., stp =size/2.;
+	float fuzz = 20.;
 	for(float x = -size; x <= size; x+=stp)
 	{
 		for(float y = -size; y <= size; y+=stp)
 		{
 			for(float z = -size; z <= size; z+=stp)
 			{
-				float pcfDepth = texture(depthmap, fragToLight + vec3(x, y, z)/(10.) ).r * far_plane; 
+				float pcfDepth = texture(depthmap, fragToLight + vec3(x, y, z)/fuzz ).r * far_plane; 
 				shadow += currentDepth - bias > pcfDepth ? .0 : 1.0;    
 				counter+=1.;
 			}
